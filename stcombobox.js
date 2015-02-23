@@ -73,19 +73,20 @@ var STComboBox = (function($) {
         c$.html(this.getHtml(containerId));
         var self = this;
         c$.find('.stc-button').on('click', function(evt) { //event for clicking on the combobox button
-            evt.stopPropagation();
             self.toggleList();
             self.getInput().focus();
         });
-        $(document).on('click', function() { //event for clicking on the page, not on the combo box
-            self.hideList();
+        $(document).on('click', function(evt) { //event for clicking on the page, not on the combo box
+            var id = evt.target.id;
+            if(id != self.getId('ddi') && (id != self.getId('ddbutton'))) {
+                self.hideList();
+            }
         });
         this.getInput().on('keydown', function(evt) {
             self.onKeyDown(evt);
         }).on('focus', function(evt) {
             self.onShowList(evt);
         }).on('click', function(evt) {
-            evt.stopPropagation();
         });
     };
 
@@ -165,6 +166,11 @@ var STComboBox = (function($) {
     //This is just a convenience function to shorten the selecting of DOM objects
     Class.prototype.$ = function(suffix) {
         return j$(this.containerId + '-' + suffix);
+    };
+
+    //Convenience function for getting the IDs of combobox DOM objects
+    Class.prototype.getId = function(suffix) {
+        return this.containerId + '-' + suffix;
     };
 
     //Deselect a row in the grid, and set the "selected" index if the optional index
@@ -354,7 +360,7 @@ var STComboBox = (function($) {
              + '<table cellspacing="0" cellpadding="0" class="stc-table" id="' + containerId + '-ddt">'
              + '<tr>'
              + ' <td><input type="text" class="stc-input" id="' + containerId + '-ddi"/></td>'
-             + ' <td class="stc-button"></td>'
+             + ' <td class="stc-button" id="' + containerId + '-ddbutton"></td>'
              + '</tr>'
              + '</table>'
              + '<div id="' + containerId + '-ddl" class="stc-lc" style="display: none"></div>'

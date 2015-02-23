@@ -1,0 +1,57 @@
+.stc-box {
+    display: inline-block;
+    position: relative;
+}
+
+.stc-button {
+    cursor: pointer;
+    width: 20px;
+    background: #DECCA6 url(stcombo_triangle.png) no-repeat center;
+}
+
+.stc-table {
+    position: relative;
+    border: 1px solid #A89B7E;
+}
+
+.stc-input {
+    border: 0;
+}
+
+.stc-lc {
+    position: absolute;
+    background-color: #fff;
+    z-index: 9999;
+    max-height: 150px;
+    overflow: auto;
+    border: 1px solid #D9D9D9;
+    border-top: 0;
+}
+
+.stc-lrow-odd
+{
+    background-color: #F5F5F5;
+}
+
+.stc-ltable
+{
+    width: 100%;
+    position: relative;
+}
+
+.stc-lrow-hover
+{
+    background-color: #e0e0e0;
+}
+
+.stc-lrow-hl
+{
+    background-color: #BDBDBD;
+}
+
+.stc-text
+{
+    display: inline-block;
+    font-family: Arial;
+    font-size: 12px;
+}

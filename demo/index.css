@@ -49,3 +49,7 @@ label {
     font-size: 1.1em;
     color: #333333;
 }
+
+.stc-lrow {
+    cursor: pointer;
+}

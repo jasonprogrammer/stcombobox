@@ -75,7 +75,7 @@ var STComboBox = (function($) {
         c$.find('.stc-button').on('click', function(evt) { //event for clicking on the combobox button
             evt.stopPropagation();
             self.toggleList();
-            self.filterAndResetSelected();
+            self.getInput().focus();
         });
         $(document).on('click', function() { //event for clicking on the page, not on the combo box
             self.hideList();
@@ -83,7 +83,7 @@ var STComboBox = (function($) {
         this.getInput().on('keydown', function(evt) {
             self.onKeyDown(evt);
         }).on('focus', function(evt) {
-            self.onFocus(evt);
+            self.onShowList(evt);
         }).on('click', function(evt) {
             evt.stopPropagation();
         });
@@ -91,17 +91,27 @@ var STComboBox = (function($) {
 
     //Filter the list and reset the selected index
     Class.prototype.filterAndResetSelected = function() {
-        if(this.$('ddi').val() == '') {
-            this.selectRow(0);
+        var inputValue = this.$('ddi').val();
+
+        if(!inputValue) {
+            this.selectRow(0, 0);
+            return;
+        }
+        this.$('ddi').val('');
+        this.restoreAllRows();
+        this.deselectRow();
+
+        this.visibleRows = this.getDomRows();
+
+        if(inputValue && typeof(this.valueMap[inputValue]) != 'undefined') {
+            this.selectRow(this.valueMap[inputValue], 0);
         } else {
-            this.filterList(this.$('ddi').val());
-            this.$('ddl').scrollTop(0);
-            this.selectedIndex = 0;
+            this.selectRow(0, 0);
         }
     };
 
     //Event for when the input box inside the combo box receives focus
-    Class.prototype.onFocus = function(evt) {
+    Class.prototype.onShowList = function() {
         this.showList();
         this.filterAndResetSelected();
     };
@@ -117,9 +127,15 @@ var STComboBox = (function($) {
         }
 
         if(evt.which == keycodes.down) {
+            var $list = this.$('ddl');
+            if($list.css('display') == 'none') {
+                this.onShowList();
+                return false;
+            }
+
             if(this.selectedIndex < (this.visibleRows.length-1)) {
                 this.deselectRow();
-                this.selectRow(++this.selectedIndex);
+                this.selectRow(++this.selectedIndex, 2);
             }
             return false;
         }
@@ -128,7 +144,7 @@ var STComboBox = (function($) {
             evt.stopPropagation();
             if(this.selectedIndex > 0) {
                 this.deselectRow();
-                this.selectRow(--this.selectedIndex);
+                this.selectRow(--this.selectedIndex, 1);
             } else {
                 this.deselectRow(-1);
             }
@@ -142,7 +158,8 @@ var STComboBox = (function($) {
         this.showList();
         this.deselectRow();
         this.filterList(this.getInput().val());
-        this.selectedIndex = -1;
+        //this.selectedIndex = -1;
+        this.selectRow(0, 0);
     }, 200);
 
     //This is just a convenience function to shorten the selecting of DOM objects
@@ -161,7 +178,7 @@ var STComboBox = (function($) {
     };
 
     //Select a row in the list of items that appears (e.g. when clicking the combo box button)
-    Class.prototype.selectRow = function(index) {
+    Class.prototype.selectRow = function(index, context) {
         var rows = this.getVisibleDomRows();
 
         if(rows.length == 0 || (index >= (rows.length))) {
@@ -174,10 +191,8 @@ var STComboBox = (function($) {
         var $listContainer = this.$('ddl');
 
         if(index == 0) {
-            console.log($listContainer);
             $listContainer.scrollTop(0);
             return;
-            //this.scrollTop =
         }
         var scrollTop = $listContainer.scrollTop();
         var containerHeight = $listContainer.height();
@@ -187,14 +202,29 @@ var STComboBox = (function($) {
         var rowHeight = $row.outerHeight();
         var rowPos = $row.position();
 
-        console.log('scroll top: ' + scrollTop + '; rowTop: ' + rowPos.top);
-
-        if(rowPos.top < scrollTop) { //the user is moving up
-            console.log('moving up to: ' + rowPos.top);
-            $listContainer.scrollTop(rowPos.top);
+        switch(context) {
+            case 0:
+                $listContainer.scrollTop(rowPos.top); //just move to the item
+                break;
+            case 1:
+                if(rowPos.top < scrollTop) { //the user is moving up
+                    $listContainer.scrollTop(rowPos.top);
+                }
+                break;
+            case 2:
+                if((rowPos.top + rowHeight) > scrollBottom) { //the user is moving down
+                    $listContainer.scrollTop(scrollTop + rowHeight);
+                }
+                break;
         }
-        if((rowPos.top + rowHeight) > scrollBottom) { //the user is moving down
-            $listContainer.scrollTop(scrollTop + rowHeight);
+    };
+
+    //make all rows visible
+    Class.prototype.restoreAllRows = function() {
+        var rows = this.getDomRows();
+
+        for(var i=0; i < rows.length; i++) {
+            $(rows[i]).show().removeClass('stc-lrow-odd').toggleClass('stc-lrow-odd', i%2 == 1);
         }
     };
 
@@ -302,15 +332,16 @@ var STComboBox = (function($) {
         var containerId = this.containerId;
         var html = '<table cellspacing="0" cellpadding="0" class="stc-ltable" id="' + containerId + '-ddlt">';
 
+        this.valueMap = {};
         for(var i=0; i < data.length; i++) {
             var d = data[i];
             var oddRow = (i % 2) ? 'stc-lrow-odd' : '';
-            html += '<tr class="stc-lrow ' + oddRow + '" data-stc-id="' + d.id + '"'
-                  + ' id="' + containerId + '-ddlrow">'
+            html += '<tr class="stc-lrow ' + oddRow + '" data-stc-id="' + d.id + '">'
                   + '<td>'
                   + '<span class="stc-text" id="' + containerId + '-ddtext' + i + '">' + d.text + '</span>'
                   + '</td>'
                   + '</tr>';
+            this.valueMap[d.text] = i;
         }
         html += '</table>';
         return html;

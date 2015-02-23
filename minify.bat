@@ -1,0 +1,1 @@
+uglifyjs stcombobox.js -c -m -o stcombobox.min.js

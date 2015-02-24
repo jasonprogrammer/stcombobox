@@ -87,6 +87,9 @@ var STComboBox = (function($) {
         }).on('focus', function(evt) {
             self.onShowList(evt);
         }).on('click', function(evt) {
+            if(self.$('ddl').css('display') == 'none') {
+                self.getInput().focus();
+            }
         });
     };
 
@@ -176,7 +179,7 @@ var STComboBox = (function($) {
     //Deselect a row in the grid, and set the "selected" index if the optional index
     //parameter is passed
     Class.prototype.deselectRow = function(selectedIndex) {
-        $(this.getVisibleDomRows()[this.selectedIndex]).removeClass('stc-lrow-hl');
+        this.$('ddl').find('.stc-lrow-hl').removeClass('stc-lrow-hl');
 
         if(selectedIndex) {
             this.selectedIndex = selectedIndex;

@@ -20,7 +20,8 @@ var STComboBox = (function($) {
     var keycodes = {
         up: 38,
         down: 40,
-        enter: 13
+        enter: 13,
+        tab: 9
     };
 
     //Copied from the UnderscoreJS library
@@ -90,6 +91,10 @@ var STComboBox = (function($) {
             if(self.$('ddl').css('display') == 'none') {
                 self.getInput().focus();
             }
+        }).on('blur', function(evt) {
+            if(self.onBlur) {
+                self.onBlur(evt, self.getInput().val());
+            }
         });
     };
 
@@ -97,13 +102,13 @@ var STComboBox = (function($) {
     Class.prototype.filterAndResetSelected = function() {
         var inputValue = this.$('ddi').val();
 
+        this.deselectRow();
         if(!inputValue) {
             this.selectRow(0, 0);
             return;
         }
         this.$('ddi').val('');
         this.restoreAllRows();
-        this.deselectRow();
 
         this.visibleRows = this.getDomRows();
 
@@ -127,6 +132,9 @@ var STComboBox = (function($) {
             var selectedIndex = $(rows[this.selectedIndex]).attr('data-stc-id')*1;
             this.$('ddi').val(this.data[selectedIndex].text);
             this.hideList();
+            if(this.onSelect) {
+                this.onSelect(evt, this.getInput().val());
+            }
             return false;
         }
 
@@ -153,6 +161,11 @@ var STComboBox = (function($) {
                 this.deselectRow(-1);
             }
             return false;
+        }
+
+        if(evt.which == keycodes.tab) {
+            this.hideList();
+            return true;
         }
         this.showAndFilterList();
     };
@@ -323,9 +336,12 @@ var STComboBox = (function($) {
             $(this).addClass('stc-lrow-hover');
         }, function() {
             $(this).removeClass('stc-lrow-hover');
-        }).on('click', function() {
+        }).on('click', function(evt) {
             var selectedIndex = $(this).attr('data-stc-id')*1;
             self.getInput().val(self.data[selectedIndex].text);
+            if(self.onSelect) {
+                self.onSelect(evt, self.getInput().val());
+            }
         });
         this.visibleRows = this.getDomRows();
         this.selectedIndex = -1;
@@ -366,7 +382,7 @@ var STComboBox = (function($) {
              + ' <td class="stc-button" id="' + containerId + '-ddbutton"></td>'
              + '</tr>'
              + '</table>'
-             + '<div id="' + containerId + '-ddl" class="stc-lc" style="display: none"></div>'
+             + '<div id="' + containerId + '-ddl" class="stc-lc" style="display: none" tabindex="-1"></div>'
              + '</span>';
     };
     return Class;
